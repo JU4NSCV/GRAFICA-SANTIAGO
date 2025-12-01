@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafica Santiago</title>
+    <link rel="stylesheet" href="CSS/style.css">
+</head>
+
+<body>
+    <header class="w-full bg-gray-200 text-black" id="body">
+
+        <!-- Contenedor principal -->
+        <div>
+            <div class="p-4 md:p-6">
+                <!-- FILA: LOGO / BUSCADOR / CUENTA / CARRITO -->
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
+
+                    <!-- Logo -->
+                    <div class="flex-shrink-0">
+                        <a href="index.html"
+                            class="inline-flex items-center justify-center px-8 py-6 border border-black rounded-2xl text-sm">
+                            logotipo
+                        </a>
+                    </div>
+
+                    <!-- Barra de búsqueda -->
+                    <div class="flex-1">
+                        <form class="w-full">
+                            <div class="flex items-center border border-black rounded-2xl px-4 py-3 text-sm h-14">
+                                <input type="text" placeholder="Buscar productos, categorías..."
+                                    class="w-full bg-transparent outline-none placeholder:text-gray-600" />
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Cuenta + Carrito -->
+                    <div class="flex-shrink-0 flex items-center gap-4 md:gap-3">
+                        <!-- Cuenta -->
+                        <a href="login.html"
+                            class="inline-flex items-center justify-center w-24 h-24 border border-black rounded-full text-xs leading-tight text-center uppercase">
+                            Cuenta
+                        </a>
+
+                        <!-- Carrito -->
+                        <a href="#carrito"
+                            class="inline-flex items-center justify-center px-4 py-3 border border-black rounded-2xl text-xs">
+                            carrito
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="h-auto border-t border-black sticky top-0 z-50 shadow-lg bg-gray-300">
+        <ul class="py-5 flex flex-wrap items-center justify-center gap-12 sm:gap-6 text-sm tracking-[0.2em] uppercase">
+            <li class="hover:scale-105 transition">
+                <a href="index.html" class="hover:underline">
+                    Inicio
+                </a>
+            </li>
+
+            <!-- CATALOGO + DROPDOWN -->
+            <li class="relative group">
+                <!-- Botón principal -->
+                <button class="px-5 transition tracking-[0.2em] uppercase hover:scale-105 hover:underline">
+                    <a href="catalogo.html">catalogo</a>
+                </button>
+
+                <!-- Dropdown -->
+                <div class="absolute left-0 hidden mt-3 group-hover:block z-20">
+                    <div
+                        class="w-52 border border-black rounded-lg bg-gray-100 py-4 flex flex-col text-xs tracking-[0.15em] uppercase">
+                        <a href="#bazar" class="px-7 py-3 hover:bg-gray-200">Bazar</a>
+                        <a href="#papeleria" class="px-7 py-3 hover:bg-gray-200">Papelería</a>
+                        <a href="#arte" class="px-7 py-3 hover:bg-gray-200">Arte</a>
+                        <a href="#oficina" class="px-7 py-3 hover:bg-gray-200">Oficina</a>
+                        <a href="#escolares" class="px-7 py-3 hover:bg-gray-200">Escolares</a>
+                    </div>
+                </div>
+            </li>
+
+            <li class="hover:scale-105 transition">
+                <a href="blog.html" class="hover:underline">
+                    Blog
+                </a>
+            </li>
+
+            <li class="hover:scale-105 transition">
+                <a href="Intituciones.html" class="hover:underline">
+                    Instituciones
+                </a>
+            </li>
+
+            <li class="hover:scale-105 transition">
+                <a href="#wishlist" class="hover:underline">
+                    Wishlist
+                </a>
+            </li>
+
+            <li class="hover:scale-105 transition">
+                <a href="#listas" class="hover:underline">
+                    Listas
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- BANNER DE PROMOCIONES -->
+    <section>
+        <div class="h-52 bg-gray-300 flex justify-center items-center text-3xl font-semibold text-gray-700">
+            Promociones
+        </div>
+    </section>
+
+    <h2 class="mt-10 px-6 max-w-7xl mx-auto text-2xl font-bold mb-4 text-gray-800">Destacados y recomendados</h2>
+
+    <!-- DESTACADOS Y RECOMENDADOS -->
+    <section class="px-6 max-w-7xl mx-auto grid grid-cols-2 gap-3">
+        <div class="relative max-w-4xl p-4 bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+            <div class="h-80 flex gap-2 text-white">
+                <div
+                    class="w-2/3 p-2 bg-gray-500 rounded-lg flex items-center justify-center text-xl font-semibold hover:scale-90 transition">
+                    IMG
+                </div>
+                <div class="w-1/3 p-2 bg-gray-600 rounded-lg flex flex-col">
+                    <div class="h-2/4 p-2 flex items-center justify-center text-lg border-b border-gray-500">DESC</div>
+                    <div class="h-auto p-2 flex items-center justify-center text-xl font-bold">PRECIO</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div
+                class="bg-gray-500 rounded-t-xl shadow-xl flex items-center justify-center text-xl text-white font-semibold flex-1 h-1/2 hover:bg-gray-800 hover:scale-105 transition">
+                imagen</div>
+            <div
+                class="bg-gray-500 rounded-b-xl shadow-xl flex items-center justify-center text-xl text-white font-semibold flex-1 h-1/2 hover:bg-gray-800 hover:scale-105 transition">
+                imagen</div>
+        </div>
+    </section>
+
+    <!-- categorias -->
+
+    <section class="mt-10 px-6 max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Categorías Populares</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+                class="bg-blue-100 text-blue-800 p-6 rounded-xl text-center font-medium hover:bg-blue-200 hover:scale-110 transition">
+                Bazar</div>
+            <div
+                class="bg-green-100 text-green-800 p-6 rounded-xl text-center font-medium hover:bg-green-200 hover:scale-110 transition">
+                Papelería</div>
+            <div
+                class="bg-yellow-100 text-yellow-800 p-6 rounded-xl text-center font-medium hover:bg-yellow-200 hover:scale-110 transition">
+                Arte</div>
+            <div
+                class="bg-red-100 text-red-800 p-6 rounded-xl text-center font-medium hover:bg-red-200 hover:scale-110 transition">
+                Oficina</div>
+        </div>
+    </section>
+
+    <!-- OFERTAS DESTACADAS -->
+    <section class="mt-10 px-6 max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Ofertas Destacadas</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <div class="bg-gray-800 rounded-xl shadow-xl flex flex-col hover:scale-110 transition">
+                <div
+                    class="h-48 bg-gray-500 flex items-center justify-center text-xl text-white font-semibold rounded-t-xl">
+                    imagen</div>
+                <div
+                    class="p-4 flex-grow bg-gray-700 flex items-center justify-center text-lg text-gray-300 rounded-b-xl">
+                    desc</div>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl shadow-xl flex flex-col hover:scale-110 transition">
+                <div
+                    class="h-48 bg-gray-500 flex items-center justify-center text-xl text-white font-semibold rounded-t-xl">
+                    imagen</div>
+                <div
+                    class="p-4 flex-grow bg-gray-700 flex items-center justify-center text-lg text-gray-300 rounded-b-xl">
+                    desc</div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+
+                <div
+                    class="bg-gray-500 rounded-xl shadow-xl flex items-center justify-center text-xl text-white font-semibold flex-1 h-1/2 hover:bg-gray-800 hover:scale-110 transition">
+                    imagen</div>
+
+                <div
+                    class="bg-gray-500 rounded-xl shadow-xl flex items-center justify-center text-xl text-white font-semibold flex-1 h-1/2 hover:bg-gray-800 hover:scale-110 transition">
+                    imagen</div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <section class="mt-10 px-6 max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Productos populares</h2>
+
+        <!-- Aquí JS va a inyectar las 4 tarjetas -->
+        <div id="popular-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+    </section>
+
+    <section class="mt-10 px-6 max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Escolares</h2>
+
+        <!-- Aquí JS va a inyectar las 4 tarjetas -->
+        <div id="popular-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <div class="mt-6">
+            <div class="justify-center flex">
+                <button
+                    class="px-4 py-2 hover:shadow-md rounded-full hover:scale-105 transition hover:underline hover:bg-slate-800 hover:text-white tracking-[0.16em] ">Ver
+                    más</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="mt-10 px-6 max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Tecnologia</h2>
+
+        <!-- Aquí JS va a inyectar las 4 tarjetas -->
+        <div id="popular-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <div class="mt-6">
+            <div class="justify-center flex">
+                <button
+                    class="px-4 py-2 hover:shadow-md rounded-full hover:scale-105 transition hover:underline hover:bg-slate-800 hover:text-white tracking-[0.16em] ">Ver
+                    más</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="mt-10 px-6 max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Bazar</h2>
+
+        <!-- Aquí JS va a inyectar las 4 tarjetas -->
+        <div id="popular-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <div class="mt-6">
+            <div class="justify-center flex">
+                <button
+                    class="px-4 py-2 hover:shadow-md rounded-full hover:scale-105 transition hover:underline hover:bg-slate-800 hover:text-white tracking-[0.16em] ">Ver
+                    más</button>
+            </div>
+        </div>
+    </section>
+
+
+
+    <section class="mt-10 text-white bg-slate-300">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                Explora por categoría
+            </h2>
+
+            <div class="relative">
+
+                <!-- Flecha izquierda -->
+                <button id="categoryPrev"
+                    class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 h-20 w-10 items-center justify-center bg-slate-600/80 hover:bg-slate-800 rounded-xl z-10">
+                    <span class="text-2xl leading-none">&lt;</span>
+                </button>
+
+                <!-- Contenedor scroll -->
+                <div id="categoryScroller"
+                    class="flex gap-4 overflow-x-auto px-8 py-2 scroll-smooth snap-x snap-mandatory">
+                    <!-- Las tarjetas se agregan con JS -->
+                </div>
+
+                <!-- Flecha derecha -->
+                <button id="categoryNext"
+                    class="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 h-20 w-10 items-center justify-center bg-slate-600/80 hover:bg-slate-800 rounded-xl z-10">
+                    <span class="text-2xl leading-none">&gt;</span>
+                </button>
+
+                <!-- Dots -->
+                <div id="categoryDots" class="mt-4 flex justify-center gap-2"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mt-10 px-6 max-w-7xl mx-auto">
+
+        <!-- Aquí JS inyecta las tarjetas -->
+        <div id="product-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        <div class="mt-6">
+            <div class="justify-center flex">
+                <button
+                    class="px-4 py-2 bg-slate-100 shadow-md rounded-xl hover:scale-105 transition hover:bg-slate-800 hover:text-white tracking-[0.16em] ">Todos
+                    los producto</button>
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+
+
+    <footer class="mt-16 bg-gray-300 text-black shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-sm">
+
+            <!-- ¿DÓNDE ESTAMOS? -->
+            <div>
+                <h3 class="text-xs font-semibold tracking-[0.25em] uppercase mb-4">
+                    ¿Dónde estamos?
+                </h3>
+
+                <div class="space-y-5">
+                    <!-- Matriz -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            📍
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">Matriz</p>
+                            <p class="text-sm leading-snug">
+                                Azuay 152-48 entre 18 de Noviembre y Avenida Universitaria
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Sucursal 1 -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            📍
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">Sucursal 1</p>
+                            <p class="text-sm leading-snug">
+                                Almacén UTPL
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Sucursal 2 -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            📍
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">Sucursal 2</p>
+                            <p class="text-sm leading-snug">
+                                Calle Guaranda y Avenida Cuxibamba
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LLÁMENOS -->
+            <div>
+                <h3 class="text-xs font-semibold tracking-[0.25em] uppercase mb-4">
+                    Llámenos
+                </h3>
+
+                <div class="space-y-5">
+                    <!-- Teléfonos -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            ☎
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">Teléfonos</p>
+                            <p class="text-sm leading-snug">072573358</p>
+                            <button class="mt-1 text-xs underline underline-offset-2 hover:opacity-80">
+                                Ver extensiones
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Celular por mayor -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            📱
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">
+                                Celular por mayor
+                            </p>
+                            <p class="text-sm leading-snug">
+                                0939826491 / 0939522690
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Celular por menor -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            📱
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">
+                                Celular por menor
+                            </p>
+                            <p class="text-sm leading-snug">
+                                0987667459
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ESCRÍBANOS -->
+            <div>
+                <h3 class="text-xs font-semibold tracking-[0.25em] uppercase mb-4">
+                    Escríbanos
+                </h3>
+
+                <div class="space-y-5">
+                    <!-- Ventas -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            ✉
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">
+                                Ventas
+                            </p>
+                            <a href="mailto:ventas@santiagopapeleria.com" class="text-sm leading-snug hover:underline">
+                                ventas@santiagopapeleria.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Dudas y reclamos -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            🙂
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">
+                                Dudas y reclamos
+                            </p>
+                            <a href="mailto:servicios@santiagopapeleria.com"
+                                class="text-sm leading-snug hover:underline">
+                                servicios@santiagopapeleria.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Facturación -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-black text-xs">
+                            💼
+                        </div>
+                        <div>
+                            <p class="font-semibold text-xs tracking-[0.18em] uppercase">
+                                Facturación
+                            </p>
+                            <a href="mailto:facturas@santiagopapeleria.com"
+                                class="text-sm leading-snug hover:underline">
+                                facturas@santiagopapeleria.com
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LA EMPRESA / ¿CÓMO COMPRAR? -->
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xs font-semibold tracking-[0.25em] uppercase mb-3">
+                        La empresa
+                    </h3>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:underline">Quiénes somos</a></li>
+                        <li><a href="#" class="hover:underline">Nuestro blog</a></li>
+                        <li><a href="#" class="hover:underline">Promociones</a></li>
+                        <li><a href="#" class="hover:underline">Contáctenos</a></li>
+                        <li><a href="#" class="hover:underline">Trabaja con nosotros</a></li>
+                        <li><a href="#" class="hover:underline">Responsabilidad social</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-semibold tracking-[0.25em] uppercase mb-3">
+                        ¿Cómo comprar?
+                    </h3>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:underline">Formas de pago</a></li>
+                        <li><a href="#" class="hover:underline">Envío y recogida en tienda</a></li>
+                        <li><a href="#" class="hover:underline">Devolución y cambio</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- BARRA INFERIOR -->
+        <div class="border-t border-black">
+            <div
+                class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-xs">
+                <p class="tracking-[0.20em]">&copy; 2025 Gráfica Santiago. Todos los derechos reservados.</p>
+                <p class="tracking-[0.20em] uppercase">
+                    Papelería & Bazar · Loja - Ecuador
+                </p>
+            </div>
+        </div>
+    </footer>
+
+
+</body>
+<script src="JS/script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+</html>
