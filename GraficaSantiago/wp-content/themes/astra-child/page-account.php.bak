@@ -1,0 +1,718 @@
+<!-- <?php
+/* Template Name: Account */
+defined('ABSPATH') || exit;
+
+get_header();
+
+// ---------------------------
+// Helpers
+// ---------------------------
+function gs_initials($name) {
+  $name = trim((string)$name);
+  if ($name === '') return 'U';
+  $parts = preg_split('/\s+/', $name);
+  $ini = '';
+  foreach ($parts as $p) {
+    $ini .= mb_strtoupper(mb_substr($p, 0, 1));
+    if (mb_strlen($ini) >= 2) break;
+  }
+  return $ini ?: 'U';
+}
+
+function gs_clean($key, $default = '') {
+  return isset($_POST[$key]) ? wp_unslash($_POST[$key]) : $default;
+}
+
+// ---------------------------
+// Si NO está logueado → mostrar login de Woo
+// ---------------------------
+if (!is_user_logged_in()) {
+  echo '<section class="max-w-7xl mx-auto px-4 md:px-6 py-10">';
+  echo '<div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6">';
+  echo do_shortcode('[woocommerce_my_account]');
+  echo '</div></section>';
+  get_footer();
+  exit;
+}
+
+// ---------------------------
+// Mayorista endpoints (tu lógica)
+// ---------------------------
+$is_mayorista_endpoint =
+  function_exists('is_wc_endpoint_url') && (
+    is_wc_endpoint_url('mayorista') ||
+    is_wc_endpoint_url('catalogo-mayorista') ||
+    is_wc_endpoint_url('pedido-rapido')
+  );
+
+if ($is_mayorista_endpoint) : ?>
+  <section class="max-w-7xl mx-auto px-4 md:px-6 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+      <aside class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sticky top-24">
+          <h2 class="text-xs font-semibold tracking-[0.25em] uppercase text-gray-500 mb-4">Cuenta</h2>
+          <div class="gs-wc-nav">
+            <?php woocommerce_account_navigation(); ?>
+          </div>
+        </div>
+      </aside>
+
+      <main class="lg:col-span-3">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div class="gs-wc-content">
+            <?php woocommerce_account_content(); ?>
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </section>
+  <?php get_footer(); exit; ?>
+<?php endif; ?>
+
+<?php
+// ---------------------------
+// Usuario
+// ---------------------------
+$current_user = wp_get_current_user();
+$user_id = $current_user->ID;
+
+$full_name = trim($current_user->first_name . ' ' . $current_user->last_name);
+$display_name = $full_name ?: $current_user->display_name;
+$initials = gs_initials($display_name);
+
+$billing_phone = get_user_meta($user_id, 'billing_phone', true);
+
+// ---------------------------
+// Mensajes
+// ---------------------------
+$notice = null; // ['type'=>'success|error|info', 'msg'=>'...']
+
+// ---------------------------
+// Actions (POST)
+// ---------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gs_action'])) {
+
+  if (!isset($_POST['gs_account_nonce']) || !wp_verify_nonce($_POST['gs_account_nonce'], 'gs_account_update')) {
+    $notice = ['type' => 'error', 'msg' => 'Token de seguridad inválido. Recarga la página e inténtalo nuevamente.'];
+  } else {
+
+    $action = sanitize_text_field(wp_unslash($_POST['gs_action']));
+
+    // 1) Update profile
+    if ($action === 'update_profile') {
+      $first = sanitize_text_field(gs_clean('first_name'));
+      $last  = sanitize_text_field(gs_clean('last_name'));
+      $email = sanitize_email(gs_clean('user_email'));
+      $phone = sanitize_text_field(gs_clean('billing_phone'));
+
+      if ($email && !is_email($email)) {
+        $notice = ['type' => 'error', 'msg' => 'El correo no es válido.'];
+      } else {
+        $userdata = [
+          'ID'         => $user_id,
+          'first_name' => $first,
+          'last_name'  => $last,
+        ];
+        if ($email) $userdata['user_email'] = $email;
+
+        $updated = wp_update_user($userdata);
+        if (is_wp_error($updated)) {
+          $notice = ['type' => 'error', 'msg' => $updated->get_error_message()];
+        } else {
+          update_user_meta($user_id, 'billing_phone', $phone);
+          $notice = ['type' => 'success', 'msg' => 'Información actualizada correctamente.'];
+          $current_user = wp_get_current_user(); // refresh
+        }
+      }
+    }
+
+    // 2) Update addresses
+    if ($action === 'update_addresses') {
+      // Billing
+      $billing = [
+        'billing_first_name', 'billing_last_name', 'billing_company', 'billing_phone',
+        'billing_country', 'billing_state', 'billing_city', 'billing_postcode',
+        'billing_address_1', 'billing_address_2',
+      ];
+      foreach ($billing as $k) {
+        update_user_meta($user_id, $k, sanitize_text_field(gs_clean($k)));
+      }
+
+      // Shipping (si aplica)
+      if (isset($_POST['ship_to_different']) && $_POST['ship_to_different'] === '1') {
+        $shipping = [
+          'shipping_first_name', 'shipping_last_name', 'shipping_company',
+          'shipping_country', 'shipping_state', 'shipping_city', 'shipping_postcode',
+          'shipping_address_1', 'shipping_address_2',
+        ];
+        foreach ($shipping as $k) {
+          update_user_meta($user_id, $k, sanitize_text_field(gs_clean($k)));
+        }
+      }
+
+      $notice = ['type' => 'success', 'msg' => 'Direcciones guardadas correctamente.'];
+    }
+
+    // 3) Change password
+    if ($action === 'change_password') {
+      $current_pass = (string) gs_clean('current_password');
+      $new_pass     = (string) gs_clean('new_password');
+      $new_pass2    = (string) gs_clean('new_password_2');
+
+      if ($new_pass === '' || $new_pass2 === '') {
+        $notice = ['type' => 'error', 'msg' => 'Completa la nueva contraseña y su confirmación.'];
+      } elseif ($new_pass !== $new_pass2) {
+        $notice = ['type' => 'error', 'msg' => 'Las contraseñas no coinciden.'];
+      } elseif (!wp_check_password($current_pass, $current_user->user_pass, $user_id)) {
+        $notice = ['type' => 'error', 'msg' => 'La contraseña actual no es correcta.'];
+      } else {
+        wp_set_password($new_pass, $user_id);
+
+        // Mantener sesión
+        wp_set_current_user($user_id);
+        wp_set_auth_cookie($user_id, true);
+
+        $notice = ['type' => 'success', 'msg' => 'Contraseña actualizada correctamente.'];
+      }
+    }
+
+    // 4) Logout other sessions
+    if ($action === 'logout_others') {
+      if (class_exists('WP_Session_Tokens')) {
+        $manager = WP_Session_Tokens::get_instance($user_id);
+        $token = wp_get_session_token();
+        if ($token) {
+          $manager->destroy_others($token);
+          $notice = ['type' => 'success', 'msg' => 'Se cerraron las sesiones en otros dispositivos.'];
+        } else {
+          $notice = ['type' => 'error', 'msg' => 'No se pudo identificar la sesión actual.'];
+        }
+      } else {
+        $notice = ['type' => 'error', 'msg' => 'La función de sesiones no está disponible en este sitio.'];
+      }
+    }
+  }
+}
+
+// ---------------------------
+// Tab actual (por URL ?tab=...)
+// ---------------------------
+$tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'detalles';
+$valid_tabs = ['detalles', 'pedidos', 'historial', 'seguridad', 'direcciones'];
+if (!in_array($tab, $valid_tabs, true)) $tab = 'detalles';
+
+// ---------------------------
+// Orders
+// ---------------------------
+$orders = [];
+if (function_exists('wc_get_orders')) {
+  $orders = wc_get_orders([
+    'customer' => $user_id,
+    'limit'    => 10,
+    'orderby'  => 'date',
+    'order'    => 'DESC',
+  ]);
+}
+
+// ---------------------------
+// Recently viewed (Woo cookie)
+// ---------------------------
+$recent_ids = [];
+if (!empty($_COOKIE['woocommerce_recently_viewed'])) {
+  $recent_ids = array_filter(array_map('absint', explode('|', wp_unslash($_COOKIE['woocommerce_recently_viewed']))));
+  $recent_ids = array_values(array_unique($recent_ids));
+  $recent_ids = array_slice($recent_ids, 0, 8);
+}
+
+// Wishlist (si existe tu función)
+$wishlist_ids = function_exists('gs_wishlist_get_ids') ? array_values(array_map('absint', (array) gs_wishlist_get_ids())) : [];
+$wishlist_ids = array_slice($wishlist_ids, 0, 8);
+
+// Dirección meta actual
+$meta = function($k) use ($user_id) { return (string) get_user_meta($user_id, $k, true); };
+
+// Países Woo
+$countries = function_exists('WC') ? WC()->countries->get_countries() : [];
+$states = function_exists('WC') ? WC()->countries->get_states() : [];
+
+?>
+
+<section class="w-full bg-gradient-to-b from-blue-50 to-white">
+  <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
+
+    <!-- Header -->
+    <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6 md:p-7 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center gap-5">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-900 to-blue-700 text-white flex items-center justify-center text-2xl font-extrabold shadow">
+          <?php echo esc_html($initials); ?>
+        </div>
+
+        <div class="flex-1">
+          <h1 class="text-2xl md:text-3xl font-extrabold text-blue-900 leading-tight">
+            Hola, <?php echo esc_html($display_name); ?>
+          </h1>
+          <p class="text-sm text-blue-900/60 mt-1">
+            <?php echo esc_html($current_user->user_email); ?>
+            <?php if ($billing_phone) : ?>
+              <span class="mx-2">•</span> <?php echo esc_html($billing_phone); ?>
+            <?php endif; ?>
+          </p>
+        </div>
+
+        <div class="flex gap-3">
+          <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>"
+             class="inline-flex items-center justify-center px-4 py-2 rounded-2xl border border-blue-900/15
+                    text-blue-900 font-semibold hover:bg-blue-900 hover:text-white transition">
+            Ir al catálogo
+          </a>
+          <a href="<?php echo esc_url(wc_logout_url(get_permalink())); ?>"
+             class="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-yellow-400 text-blue-900 font-extrabold
+                    hover:bg-blue-900 hover:text-white transition">
+            Cerrar sesión
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <?php if ($notice) :
+      $map = [
+        'success' => 'bg-emerald-50 border-emerald-200 text-emerald-900',
+        'error'   => 'bg-rose-50 border-rose-200 text-rose-900',
+        'info'    => 'bg-blue-50 border-blue-200 text-blue-900',
+      ];
+      $cls = $map[$notice['type']] ?? $map['info'];
+    ?>
+      <div class="mb-6 rounded-2xl border px-4 py-3 <?php echo esc_attr($cls); ?>">
+        <div class="text-sm font-semibold"><?php echo esc_html($notice['msg']); ?></div>
+      </div>
+    <?php endif; ?>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Sidebar -->
+      <aside class="lg:col-span-3">
+        <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-4 sticky top-24">
+
+          <h2 class="text-xs font-extrabold tracking-[0.22em] uppercase text-blue-900/50 mb-4">
+            Mi cuenta
+          </h2>
+
+          <?php
+          $nav = [
+            'detalles'    => ['label' => 'Detalles de cuenta', 'icon' => '👤'],
+            'pedidos'     => ['label' => 'Pedidos',           'icon' => '📦'],
+            'historial'   => ['label' => 'Historial',         'icon' => '🕘'],
+            'seguridad'   => ['label' => 'Seguridad',         'icon' => '🔒'],
+            'direcciones' => ['label' => 'Direcciones',       'icon' => '📍'],
+          ];
+          ?>
+
+          <nav class="space-y-2">
+            <?php foreach ($nav as $k => $item) :
+              $active = ($tab === $k);
+              $url = add_query_arg('tab', $k, get_permalink());
+            ?>
+              <a href="<?php echo esc_url($url); ?>"
+                 class="<?php echo $active
+                    ? 'bg-blue-900 text-white'
+                    : 'bg-blue-50/40 text-blue-900 hover:bg-blue-900 hover:text-white'; ?>
+                 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl font-extrabold transition">
+                <span class="flex items-center gap-3">
+                  <span class="text-base"><?php echo esc_html($item['icon']); ?></span>
+                  <span class="text-sm"><?php echo esc_html($item['label']); ?></span>
+                </span>
+                <span class="<?php echo $active ? 'text-white/80' : 'text-blue-900/40'; ?>">→</span>
+              </a>
+            <?php endforeach; ?>
+          </nav>
+
+          <div class="mt-5 rounded-2xl border border-blue-900/10 bg-white p-4">
+            <div class="text-sm font-extrabold text-blue-900">Tip</div>
+            <p class="text-xs text-blue-900/60 mt-1">
+              Mantén tus direcciones y teléfono actualizados para que tus pedidos lleguen sin problemas.
+            </p>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <main class="lg:col-span-9">
+
+        <!-- DETALLES -->
+        <?php if ($tab === 'detalles') : ?>
+          <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6 md:p-7">
+            <div class="flex items-end justify-between gap-4 mb-6">
+              <div>
+                <h2 class="text-2xl font-extrabold text-blue-900">Detalles de cuenta</h2>
+                <p class="text-sm text-blue-900/60 mt-1">Actualiza tu información personal.</p>
+              </div>
+            </div>
+
+            <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <?php wp_nonce_field('gs_account_update', 'gs_account_nonce'); ?>
+              <input type="hidden" name="gs_action" value="update_profile">
+
+              <div>
+                <label class="block text-sm font-extrabold text-blue-900 mb-1">Nombres</label>
+                <input name="first_name" type="text"
+                  value="<?php echo esc_attr($current_user->first_name); ?>"
+                  class="w-full h-12 px-4 rounded-2xl border border-blue-900/15 bg-white focus:outline-none focus:ring-4 focus:ring-yellow-200">
+              </div>
+
+              <div>
+                <label class="block text-sm font-extrabold text-blue-900 mb-1">Apellidos</label>
+                <input name="last_name" type="text"
+                  value="<?php echo esc_attr($current_user->last_name); ?>"
+                  class="w-full h-12 px-4 rounded-2xl border border-blue-900/15 bg-white focus:outline-none focus:ring-4 focus:ring-yellow-200">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-sm font-extrabold text-blue-900 mb-1">Correo</label>
+                <input name="user_email" type="email"
+                  value="<?php echo esc_attr($current_user->user_email); ?>"
+                  class="w-full h-12 px-4 rounded-2xl border border-blue-900/15 bg-white focus:outline-none focus:ring-4 focus:ring-yellow-200">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-sm font-extrabold text-blue-900 mb-1">Teléfono</label>
+                <input name="billing_phone" type="text"
+                  value="<?php echo esc_attr(get_user_meta($user_id, 'billing_phone', true)); ?>"
+                  class="w-full h-12 px-4 rounded-2xl border border-blue-900/15 bg-white focus:outline-none focus:ring-4 focus:ring-yellow-200">
+              </div>
+
+              <div class="md:col-span-2 flex justify-end">
+                <button type="submit"
+                  class="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-blue-900 text-white font-extrabold
+                         hover:bg-yellow-400 hover:text-blue-900 transition">
+                  Guardar cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        <?php endif; ?>
+
+        <!-- PEDIDOS -->
+        <?php if ($tab === 'pedidos') : ?>
+          <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6 md:p-7">
+            <div class="flex items-end justify-between gap-4 mb-6">
+              <div>
+                <h2 class="text-2xl font-extrabold text-blue-900">Pedidos</h2>
+                <p class="text-sm text-blue-900/60 mt-1">Tus pedidos más recientes.</p>
+              </div>
+            </div>
+
+            <?php if (!empty($orders)) : ?>
+              <div class="overflow-auto rounded-2xl border border-blue-900/10">
+                <table class="w-full text-sm">
+                  <thead class="bg-blue-50/50">
+                    <tr class="[&>th]:text-left [&>th]:px-4 [&>th]:py-3 [&>th]:font-extrabold [&>th]:text-blue-900/70">
+                      <th>Pedido</th>
+                      <th>Fecha</th>
+                      <th>Estado</th>
+                      <th>Total</th>
+                      <th class="text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="[&>tr]:border-t [&>tr]:border-blue-900/10">
+                    <?php foreach ($orders as $order) :
+                      /** @var WC_Order $order */
+                      $view_url = wc_get_endpoint_url('view-order', $order->get_id(), wc_get_page_permalink('myaccount'));
+                    ?>
+                      <tr class="[&>td]:px-4 [&>td]:py-3">
+                        <td class="font-extrabold text-blue-900">#<?php echo esc_html($order->get_order_number()); ?></td>
+                        <td class="text-blue-900/70"><?php echo esc_html(wc_format_datetime($order->get_date_created())); ?></td>
+                        <td>
+                          <span class="inline-flex px-3 py-1 rounded-full text-xs font-extrabold bg-blue-900 text-white">
+                            <?php echo esc_html(wc_get_order_status_name($order->get_status())); ?>
+                          </span>
+                        </td>
+                        <td class="font-extrabold text-blue-900"><?php echo wp_kses_post($order->get_formatted_order_total()); ?></td>
+                        <td class="text-right">
+                          <a href="<?php echo esc_url($view_url); ?>"
+                             class="inline-flex items-center justify-center px-4 py-2 rounded-2xl border border-blue-900/15 text-blue-900 font-extrabold
+                                    hover:bg-blue-900 hover:text-white transition">
+                            Ver
+                          </a>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            <?php else : ?>
+              <div class="rounded-2xl border border-blue-900/10 bg-blue-50/30 p-5 text-blue-900/70">
+                No tienes pedidos todavía.
+              </div>
+            <?php endif; ?>
+          </div>
+        <?php endif; ?>
+
+        <!-- HISTORIAL -->
+        <?php if ($tab === 'historial') : ?>
+          <div class="space-y-6">
+
+            <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6 md:p-7">
+              <h2 class="text-2xl font-extrabold text-blue-900">Historial</h2>
+              <p class="text-sm text-blue-900/60 mt-1">Productos vistos recientemente.</p>
+
+              <?php if (!empty($recent_ids) && function_exists('wc_get_product')) : ?>
+                <div class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <?php foreach ($recent_ids as $rid) :
+                    $p = wc_get_product($rid);
+                    if (!$p) continue;
+                  ?>
+                    <a href="<?php echo esc_url(get_permalink($rid)); ?>"
+                      class="group rounded-2xl border border-blue-900/10 bg-white p-3 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
+                      <div class="aspect-square rounded-2xl border border-blue-900/5 bg-white overflow-hidden flex items-center justify-center">
+                        <?php echo $p->get_image('woocommerce_thumbnail', ['class' => 'w-full h-full object-contain p-4 group-hover:scale-[1.04] transition']); ?>
+                      </div>
+                      <div class="mt-3 text-sm font-extrabold text-blue-900 line-clamp-2"><?php echo esc_html($p->get_name()); ?></div>
+                      <div class="text-sm font-extrabold text-blue-900/80 mt-1"><?php echo wp_kses_post($p->get_price_html()); ?></div>
+                    </a>
+                  <?php endforeach; ?>
+                </div>
+              <?php else : ?>
+                <div class="mt-5 rounded-2xl border border-blue-900/10 bg-blue-50/30 p-5 text-blue-900/70">
+                  Aún no hay historial de productos vistos.
+                </div>
+              <?php endif; ?>
+            </div>
+
+            <?php if (!empty($wishlist_ids) && function_exists('wc_get_product')) : ?>
+              <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6 md:p-7">
+                <h3 class="text-xl font-extrabold text-blue-900">Tu wishlist</h3>
+                <p class="text-sm text-blue-900/60 mt-1">Accesos rápidos a tus favoritos.</p>
+
+                <div class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <?php foreach ($wishlist_ids as $wid) :
+                    $p = wc_get_product($wid);
+                    if (!$p) continue;
+                  ?>
+                    <a href="<?php echo esc_url(get_permalink($wid)); ?>"
+                      class="group rounded-2xl border border-blue-900/10 bg-white p-3 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition">
+                      <div class="aspect-square rounded-2xl border border-blue-900/5 bg-white overflow-hidden flex items-center justify-center">
+                        <?php echo $p->get_image('woocommerce_thumbnail', ['class' => 'w-full h-full object-contain p-4 group-hover:scale-[1.04] transition']); ?>
+                      </div>
+                      <div class="mt-3 text-sm font-extrabold text-blue-900 line-clamp-2"><?php echo esc_html($p->get_name()); ?></div>
+                      <div class="text-sm font-extrabold text-blue-900/80 mt-1"><?php echo wp_kses_post($p->get_price_html()); ?></div>
+                    </a>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+            <?php endif; ?>
+
+          </div>
+        <?php endif; ?>
+
+        <!-- SEGURIDAD -->
+        <?php if ($tab === 'seguridad') : ?>
+          <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6 md:p-7">
+            <h2 class="text-2xl font-extrabold text-blue-900">Seguridad</h2>
+            <p class="text-sm text-blue-900/60 mt-1">Cambia tu contraseña y administra sesiones.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+              <!-- Change password -->
+              <div class="rounded-3xl border border-blue-900/10 p-5">
+                <h3 class="text-lg font-extrabold text-blue-900">Cambiar contraseña</h3>
+
+                <form method="post" class="mt-4 space-y-3">
+                  <?php wp_nonce_field('gs_account_update', 'gs_account_nonce'); ?>
+                  <input type="hidden" name="gs_action" value="change_password">
+
+                  <div>
+                    <label class="block text-sm font-extrabold text-blue-900 mb-1">Contraseña actual</label>
+                    <input type="password" name="current_password"
+                      class="w-full h-12 px-4 rounded-2xl border border-blue-900/15 bg-white focus:outline-none focus:ring-4 focus:ring-yellow-200">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-extrabold text-blue-900 mb-1">Nueva contraseña</label>
+                    <input type="password" name="new_password"
+                      class="w-full h-12 px-4 rounded-2xl border border-blue-900/15 bg-white focus:outline-none focus:ring-4 focus:ring-yellow-200">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-extrabold text-blue-900 mb-1">Confirmar nueva contraseña</label>
+                    <input type="password" name="new_password_2"
+                      class="w-full h-12 px-4 rounded-2xl border border-blue-900/15 bg-white focus:outline-none focus:ring-4 focus:ring-yellow-200">
+                  </div>
+
+                  <button type="submit"
+                    class="w-full h-12 rounded-2xl bg-blue-900 text-white font-extrabold hover:bg-yellow-400 hover:text-blue-900 transition">
+                    Actualizar contraseña
+                  </button>
+
+                  <p class="text-xs text-blue-900/55">
+                    Tip: usa mínimo 8 caracteres y combina letras y números.
+                  </p>
+                </form>
+              </div>
+
+              <!-- Sessions -->
+              <div class="rounded-3xl border border-blue-900/10 p-5">
+                <h3 class="text-lg font-extrabold text-blue-900">Sesiones</h3>
+                <p class="text-sm text-blue-900/60 mt-1">
+                  Si iniciaste sesión en otro dispositivo, puedes cerrarla desde aquí.
+                </p>
+
+                <form method="post" class="mt-4">
+                  <?php wp_nonce_field('gs_account_update', 'gs_account_nonce'); ?>
+                  <input type="hidden" name="gs_action" value="logout_others">
+
+                  <button type="submit"
+                    class="w-full h-12 rounded-2xl border border-blue-900/15 text-blue-900 font-extrabold
+                           hover:bg-blue-900 hover:text-white transition">
+                    Cerrar sesiones en otros dispositivos
+                  </button>
+                </form>
+
+                <div class="mt-4 rounded-2xl bg-blue-50/40 border border-blue-900/10 p-4">
+                  <div class="text-sm font-extrabold text-blue-900">Consejo</div>
+                  <div class="text-xs text-blue-900/60 mt-1">
+                    Evita redes públicas para compras. Si la usas, cambia tu contraseña luego.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        <?php endif; ?>
+
+        <!-- DIRECCIONES -->
+        <?php if ($tab === 'direcciones') : ?>
+          <div class="bg-white rounded-3xl border border-blue-900/10 shadow-sm p-6 md:p-7">
+            <h2 class="text-2xl font-extrabold text-blue-900">Direcciones</h2>
+            <p class="text-sm text-blue-900/60 mt-1">Administra tus direcciones de facturación y envío.</p>
+
+            <form method="post" class="mt-6 space-y-6">
+              <?php wp_nonce_field('gs_account_update', 'gs_account_nonce'); ?>
+              <input type="hidden" name="gs_action" value="update_addresses">
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Billing -->
+                <div class="rounded-3xl border border-blue-900/10 p-5">
+                  <h3 class="text-lg font-extrabold text-blue-900">Facturación</h3>
+
+                  <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input name="billing_first_name" placeholder="Nombres"
+                      value="<?php echo esc_attr($meta('billing_first_name')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="billing_last_name" placeholder="Apellidos"
+                      value="<?php echo esc_attr($meta('billing_last_name')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="billing_phone" placeholder="Teléfono"
+                      value="<?php echo esc_attr($meta('billing_phone')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none md:col-span-2">
+
+                    <input name="billing_company" placeholder="Empresa (opcional)"
+                      value="<?php echo esc_attr($meta('billing_company')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none md:col-span-2">
+
+                    <input name="billing_address_1" placeholder="Dirección"
+                      value="<?php echo esc_attr($meta('billing_address_1')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none md:col-span-2">
+
+                    <input name="billing_address_2" placeholder="Referencia (opcional)"
+                      value="<?php echo esc_attr($meta('billing_address_2')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none md:col-span-2">
+
+                    <input name="billing_city" placeholder="Ciudad"
+                      value="<?php echo esc_attr($meta('billing_city')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="billing_state" placeholder="Provincia"
+                      value="<?php echo esc_attr($meta('billing_state')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="billing_postcode" placeholder="Código postal"
+                      value="<?php echo esc_attr($meta('billing_postcode')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="billing_country" placeholder="País (EC)"
+                      value="<?php echo esc_attr($meta('billing_country')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+                  </div>
+                </div>
+
+                <!-- Shipping -->
+                <div class="rounded-3xl border border-blue-900/10 p-5">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 class="text-lg font-extrabold text-blue-900">Envío</h3>
+                      <p class="text-xs text-blue-900/55 mt-1">Si es diferente a facturación.</p>
+                    </div>
+
+                    <label class="inline-flex items-center gap-2 text-sm font-extrabold text-blue-900">
+                      <input type="checkbox" name="ship_to_different" value="1"
+                        class="w-5 h-5 rounded border-blue-900/20">
+                      Usar envío diferente
+                    </label>
+                  </div>
+
+                  <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input name="shipping_first_name" placeholder="Nombres"
+                      value="<?php echo esc_attr($meta('shipping_first_name')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="shipping_last_name" placeholder="Apellidos"
+                      value="<?php echo esc_attr($meta('shipping_last_name')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="shipping_company" placeholder="Empresa (opcional)"
+                      value="<?php echo esc_attr($meta('shipping_company')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none md:col-span-2">
+
+                    <input name="shipping_address_1" placeholder="Dirección"
+                      value="<?php echo esc_attr($meta('shipping_address_1')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none md:col-span-2">
+
+                    <input name="shipping_address_2" placeholder="Referencia (opcional)"
+                      value="<?php echo esc_attr($meta('shipping_address_2')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none md:col-span-2">
+
+                    <input name="shipping_city" placeholder="Ciudad"
+                      value="<?php echo esc_attr($meta('shipping_city')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="shipping_state" placeholder="Provincia"
+                      value="<?php echo esc_attr($meta('shipping_state')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="shipping_postcode" placeholder="Código postal"
+                      value="<?php echo esc_attr($meta('shipping_postcode')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+
+                    <input name="shipping_country" placeholder="País (EC)"
+                      value="<?php echo esc_attr($meta('shipping_country')); ?>"
+                      class="h-12 px-4 rounded-2xl border border-blue-900/15 focus:ring-4 focus:ring-yellow-200 outline-none">
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="flex justify-end">
+                <button type="submit"
+                  class="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-blue-900 text-white font-extrabold
+                         hover:bg-yellow-400 hover:text-blue-900 transition">
+                  Guardar direcciones
+                </button>
+              </div>
+
+            </form>
+          </div>
+        <?php endif; ?>
+
+      </main>
+
+    </div>
+  </div>
+</section>
+
+<?php get_footer(); ?> -->

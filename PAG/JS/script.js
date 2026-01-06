@@ -31,7 +31,7 @@ const categories = [
     'Papelería',
     'Escolares',
     'Oficina',
-    'Ase'
+    'Aseo'
 ];
 
 
@@ -270,3 +270,49 @@ window.addEventListener('load', buildDots);
 
 
   // PRESENTACION DE CATALOGOS///////////
+
+////////////////////////////////////////////////////////////////////////////////////// INSTITUCIONES
+
+  const instSearch = document.getElementById('institucionesSearch');
+  const instCards = document.querySelectorAll('#institucionesGrid [data-inst-name]');
+
+  instSearch.addEventListener('input', () => {
+    const term = instSearch.value.toLowerCase().trim();
+    instCards.forEach(card => {
+      const name = card.dataset.instName.toLowerCase();
+      card.classList.toggle('hidden', term && !name.includes(term));
+    });
+  });
+
+
+  const escuelaSelect = document.getElementById('escuelaSelect');
+  const colegioSelect = document.getElementById('colegioSelect');
+  const nivelTipo = document.getElementById('nivelTipo');
+  const nivelNombre = document.getElementById('nivelNombre');
+
+  function updateNivelDesdeSelect() {
+    let tipo = '';
+    let nombre = '';
+
+    if (escuelaSelect.value) {
+      tipo = 'Escuela';
+      nombre = escuelaSelect.value;
+      colegioSelect.value = ''; // deseleccionar colegio si eligen escuela
+    } else if (colegioSelect.value) {
+      tipo = 'Colegio';
+      nombre = colegioSelect.value;
+      escuelaSelect.value = ''; // deseleccionar escuela si eligen colegio
+    } else {
+      tipo = 'Primero';
+      nombre = 'Inicial';
+    }
+
+    nivelTipo.textContent = tipo;
+    nivelNombre.textContent = nombre;
+  }
+
+  escuelaSelect.addEventListener('change', updateNivelDesdeSelect);
+  colegioSelect.addEventListener('change', updateNivelDesdeSelect);
+
+  // estado inicial
+  updateNivelDesdeSelect();

@@ -1,0 +1,30 @@
+[
+  {
+    "sku": "027872",
+    "nombre": "ACCESORIOS P/BAÑO ALL PURE X17PCS 31756 7564",
+    "iva": 15,
+    "stock": 11,
+    "precios": { "pvp": 9.0625, "mayorista": 9.0179 }
+  },
+  {
+    "sku": "025601",
+    "nombre": "ACEITE P/CABELLO V/COLORES 125ML 2011880 IBETH PATRICIA RUB*",
+    "iva": 15,
+    "stock": 0,
+    "precios": { "pvp": 6.04, "mayorista": 5.6339 }
+  },
+  {
+    "sku": "013166",
+    "nombre": "ACRILICA FRANCO COBRE 035 60ML 1348",
+    "iva": 15,
+    "stock": 0,
+    "precios": { "pvp": 2.1, "mayorista": 2.0625 }
+  },
+  {
+    "sku": "003671",
+    "nombre": "ACRILICA LANCER DORADA 60ML SH.PA.215",
+    "iva": 15,
+    "stock": 0,
+    "precios": { "pvp": 0.87, "mayorista": 0.696 }
+  }
+]

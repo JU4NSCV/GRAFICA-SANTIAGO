@@ -1,0 +1,142 @@
+/*
+ Theme Name: Astra Child Grafica Santiago
+ Template: astra
+*/
+
+/* Evita que el catálogo se vaya horizontal */
+.woocommerce ul.products {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.woocommerce ul.products li.product {
+  width: auto !important;
+  float: none !important;
+}
+
+/* Si algo se está desbordando */
+.ast-container,
+.site-content {
+  overflow-x: hidden;
+}
+
+html{
+    scroll-behavior: smooth;
+}
+
+/* Quitar el layout default de Woo (floats/anchos) */
+.woocommerce-account .woocommerce-MyAccount-navigation,
+.woocommerce-account .woocommerce-MyAccount-content{
+  float: none !important;
+  width: 100% !important;
+}
+
+/* Sidebar: lista limpia */
+.gs-wc-nav .woocommerce-MyAccount-navigation ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gs-wc-nav .woocommerce-MyAccount-navigation li{
+  margin: 0;
+}
+
+.gs-wc-nav .woocommerce-MyAccount-navigation a{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #374151;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.2;
+  background: transparent;
+}
+
+.gs-wc-nav .woocommerce-MyAccount-navigation a:hover{
+  background: #F9FAFB;
+}
+
+.gs-wc-nav .woocommerce-MyAccount-navigation li.is-active a{
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+
+/* Quita el espacio blanco que Astra deja antes del footer en /login */
+body.gs-login-page .site-content,
+body.gs-login-page #content,
+body.gs-login-page .ast-container {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  background: transparent !important;
+}
+
+/* Opcional: por si Astra pone background blanco en el wrapper */
+body.gs-login-page .site-content {
+  background: transparent !important;
+}
+
+
+/* ================================
+   MAYORISTA: hacer el panel más grande
+   (Astra + Woo My Account)
+   ================================ */
+
+/* 1) Ensanchamos el contenedor SOLO en el endpoint mayorista */
+body.woocommerce-account.woocommerce-account-mayorista .ast-container {
+  max-width: 1600px;   /* súbelo a 1700/1800 si quieres */
+  width: 100%;
+}
+
+/* 2) Hacemos que el menú de la izquierda ocupe menos */
+body.woocommerce-account.woocommerce-account-mayorista .woocommerce-MyAccount-navigation {
+  width: 260px;        /* antes suele ser ~30% */
+}
+
+/* 3) Le damos más ancho al contenido */
+body.woocommerce-account.woocommerce-account-mayorista .woocommerce-MyAccount-content {
+  width: calc(100% - 280px);
+}
+
+/* 4) En pantallas pequeñas: todo a 1 columna (para que se vea completo) */
+@media (max-width: 980px) {
+  body.woocommerce-account.woocommerce-account-mayorista .woocommerce-MyAccount-navigation,
+  body.woocommerce-account.woocommerce-account-mayorista .woocommerce-MyAccount-content {
+    width: 100%;
+    float: none;
+  }
+}
+
+/* 5) Quitar límites internos típicos y dar aire */
+body.woocommerce-account.woocommerce-account-mayorista .woocommerce {
+  width: 100%;
+}
+
+body.woocommerce-account.woocommerce-account-mayorista .woocommerce-MyAccount-content > * {
+  max-width: none;
+}
+
+/* 6) Que la tabla “aparezca todo” mejor (menos cortes) */
+body.woocommerce-account.woocommerce-account-mayorista table {
+  width: 100%;
+}
+
+body.woocommerce-account.woocommerce-account-mayorista .woocommerce-MyAccount-content td,
+body.woocommerce-account.woocommerce-account-mayorista .woocommerce-MyAccount-content th {
+  white-space: normal;     /* permite saltos de línea */
+}
+
+body.woocommerce-account.woocommerce-account-mayorista .gsi-mayorista-panel h2{
+  font-size: 2.2rem;
+}
+body.woocommerce-account.woocommerce-account-mayorista .gsi-mayorista-panel .rounded-3xl{
+  padding: 2rem !important;
+}

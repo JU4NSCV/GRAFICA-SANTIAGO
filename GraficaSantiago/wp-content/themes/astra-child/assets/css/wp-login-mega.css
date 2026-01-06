@@ -1,0 +1,115 @@
+/* astra-child/assets/css/wp-login-mega.css */
+
+body.login {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* fondo tipo el tuyo */
+  background: linear-gradient(to bottom, #1e3a8a, #1d4ed8, #bfdbfe);
+  position: relative;
+}
+
+/* puntitos */
+body.login::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .18;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.35) 1px, transparent 0);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+/* caja central */
+#login {
+  width: min(440px, calc(100% - 32px));
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* logo */
+.login h1 a {
+  width: 220px;
+  height: 64px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0 auto 14px;
+}
+
+/* card */
+.login form {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 24px;
+  padding: 26px;
+  box-shadow: 0 20px 55px rgba(0,0,0,.18);
+}
+
+.login form .input,
+.login input[type="text"],
+.login input[type="password"],
+.login input[type="email"] {
+  border-radius: 16px !important;
+  border: 1px solid rgba(15,23,42,.14) !important;
+  padding: 12px 14px !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+}
+
+.login form .input:focus,
+.login input[type="text"]:focus,
+.login input[type="password"]:focus,
+.login input[type="email"]:focus {
+  border-color: rgba(37, 99, 235, .45) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, .18) !important;
+}
+
+/* botón principal */
+.wp-core-ui .button-primary {
+  width: 100%;
+  background: #1d4ed8 !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  font-weight: 800 !important;
+  padding: 12px 16px !important;
+  height: auto !important;
+  transition: .18s ease;
+}
+
+.wp-core-ui .button-primary:hover {
+  background: #facc15 !important; /* amarillo */
+  color: #0b1b3a !important;
+}
+
+/* mensajes */
+#login_error,
+.message,
+.success {
+  border-radius: 18px;
+  border-left: 0 !important;
+  box-shadow: none !important;
+  padding: 14px 16px !important;
+}
+
+/* enlaces */
+.login #nav a,
+.login #backtoblog a {
+  color: rgba(255,255,255,.92) !important;
+  font-weight: 700;
+}
+
+.login #nav,
+.login #backtoblog {
+  text-align: center;
+}
+
+/* opcional: ocultar "volver al sitio" */
+.login #backtoblog {
+  display: none;
+}
