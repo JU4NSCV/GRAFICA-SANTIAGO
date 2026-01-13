@@ -89,62 +89,6 @@ add_action('woocommerce_account_mayorista_endpoint', function () {
   echo '</ul>';
 });
 
-/** Render: Catálogo Mayorista (simple) */
-add_action('woocommerce_account_catalogo-mayorista_endpoint', function () {
-  echo '<h2>Catálogo Mayorista</h2>';
-
-  $products = wc_get_products([
-    'status' => 'publish',
-    'limit'  => 40,
-    'orderby'=> 'date',
-    'order'  => 'DESC',
-  ]);
-
-  if (!$products) { echo '<p>No hay productos.</p>'; return; }
-
-  echo '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">';
-
-
-  foreach ($products as $p) {
-    $id  = $p->get_id();
-    $sku = $p->get_sku();
-    $img = $p->get_image('woocommerce_thumbnail');
-    $priceHtml = $p->get_price_html();
-
-    echo '<div style="border:1px solid #e5e7eb;border-radius:16px;padding:12px;">';
-    echo $img;
-    echo '<h3 style="margin:8px 0 0 0;font-size:14px;">'.esc_html($p->get_name()).'</h3>';
-    echo '<div style="font-size:12px;opacity:.8;">SKU: '.esc_html($sku).'</div>';
-    echo '<div style="margin:6px 0;">'.$priceHtml.'</div>';
-
-    echo '<form method="post">';
-    wp_nonce_field('gs_add_cart_'.$id);
-    echo '<input type="hidden" name="gs_add_id" value="'.esc_attr($id).'">';
-    echo '<input type="number" name="gs_qty" value="1" min="1" style="width:80px;"> ';
-    echo '<button type="submit">Agregar</button>';
-    echo '</form>';
-
-    echo '</div>';
-  }
-
-  echo '</div>';
-});
-
-/** Agregar al carrito desde catálogo */
-add_action('init', function () {
-  if (!gs_is_mayorista()) return;
-  if (empty($_POST['gs_add_id'])) return;
-
-  $id = (int) $_POST['gs_add_id'];
-  if (!wp_verify_nonce($_POST['_wpnonce'] ?? '', 'gs_add_cart_'.$id)) return;
-
-  $qty = max(1, (int)($_POST['gs_qty'] ?? 1));
-  WC()->cart->add_to_cart($id, $qty);
-
-  wp_safe_redirect(wc_get_page_permalink('myaccount') . 'catalogo-mayorista/');
-  exit;
-});
-
 /** Render: Pedido rápido por SKU */
 add_action('woocommerce_account_pedido-rapido_endpoint', function () {
   echo '<h2>Pedido rápido (por SKU)</h2>';

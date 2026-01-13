@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"HomeLogicTest::test_promos_disabled_returns_enabled_false":0.107,"HomeLogicTest::test_promos_builds_items_and_active_index_is_safe":0.009,"HomeLogicTest::test_discount_label_returns_percentage":0.165,"HomeLogicTest::test_cta_simple_in_stock_goes_to_add_to_cart":0.012}}
