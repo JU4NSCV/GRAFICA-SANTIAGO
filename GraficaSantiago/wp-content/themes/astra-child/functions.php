@@ -761,14 +761,46 @@ add_action('woocommerce_account_historial_endpoint', function () {
 });
 
 // Contenido Seguridad (simple: link a editar cuenta)
+// SEGURIDAD: Mostrar formulario de cambio de contraseña
 add_action('woocommerce_account_seguridad_endpoint', function () {
-  echo '<div class="rounded-3xl border border-blue-900/10 p-6">';
-  echo '<h2 class="text-2xl font-extrabold text-blue-900">Seguridad</h2>';
-  echo '<p class="text-sm text-blue-900/60 mt-1">Cambia tu contraseña desde Detalles de cuenta.</p>';
-  echo '<a class="mt-4 inline-flex px-5 py-3 rounded-2xl bg-blue-900 text-white font-extrabold hover:bg-yellow-400 hover:text-blue-900 transition"
-         href="' . esc_url(wc_get_account_endpoint_url('edit-account')) . '">Ir a cambiar contraseña →</a>';
-  echo '</div>';
+  wc_get_template('myaccount/seguridad.php');
 });
+
+// ENDPOINT: /mi-cuenta/catalogo-mayorista/
+add_action('init', function () {
+  add_rewrite_endpoint('catalogo-mayorista', EP_ROOT | EP_PAGES);
+}, 20);
+
+add_filter('woocommerce_get_query_vars', function ($vars) {
+  $vars['catalogo-mayorista'] = 'catalogo-mayorista';
+  return $vars;
+});
+
+// Agregar item al menú (solo mayoristas)
+add_filter('woocommerce_account_menu_items', function ($items) {
+  if (!function_exists('gs_is_mayorista') || !gs_is_mayorista()) {
+    unset($items['catalogo-mayorista']);
+    return $items;
+  }
+
+  $new = [];
+  foreach ($items as $k => $v) {
+    $new[$k] = $v;
+    if ($k === 'mayorista') {
+      $new['catalogo-mayorista'] = 'Catálogo mayorista';
+    }
+  }
+
+  // Si no existía "mayorista" por alguna razón, lo añade al final
+  if (!isset($new['catalogo-mayorista'])) $new['catalogo-mayorista'] = 'Catálogo mayorista';
+  return $new;
+}, 60);
+
+// Render del catálogo mayorista
+add_action('woocommerce_account_catalogo-mayorista_endpoint', function () {
+  wc_get_template('myaccount/catalogo-mayorista.php');
+});
+
 
 
 add_action('init', function () {
@@ -2058,4 +2090,155 @@ add_action('wp_ajax_gsi_mayorista_save_list', function () {
   }
 
   wp_send_json_success(['message' => 'OK']);
+});
+
+
+require_once get_stylesheet_directory() . '/inc/gs-home-logic.php';
+
+
+// Enviar formulario de contacto (front + logged-in)
+add_action('admin_post_nopriv_gs_contact_submit', 'gs_contact_submit');
+add_action('admin_post_gs_contact_submit', 'gs_contact_submit');
+
+function gs_contact_submit() {
+  $ref = wp_get_referer() ?: home_url('/contactenos/');
+
+  // Nonce
+  if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'gs_contact_submit')) {
+    wp_safe_redirect(add_query_arg('sent', '0', $ref));
+    exit;
+  }
+
+  // Honeypot (anti-bots)
+  if (!empty($_POST['website'])) {
+    // Silencioso: simulamos éxito para bots
+    wp_safe_redirect(add_query_arg('sent', '1', $ref));
+    exit;
+  }
+
+  // Anti-bot: si envían demasiado rápido
+  $ts = isset($_POST['ts']) ? (int) $_POST['ts'] : 0;
+  if ($ts && (time() - $ts) < 3) {
+    wp_safe_redirect(add_query_arg('sent', '0', $ref));
+    exit;
+  }
+
+  $name    = sanitize_text_field($_POST['name'] ?? '');
+  $email   = sanitize_email($_POST['email'] ?? '');
+  $area    = sanitize_text_field($_POST['area'] ?? 'general');
+  $message = sanitize_textarea_field($_POST['message'] ?? '');
+
+  if (!$name || !is_email($email) || !$message) {
+    wp_safe_redirect(add_query_arg('sent', '0', $ref));
+    exit;
+  }
+
+  // Destinos por área
+  $recipients = [
+    'ventas'     => 'ventas@santiagopapeleria.com',
+    'servicios'  => 'servicios@santiagopapeleria.com',
+    'facturas'   => 'facturas@santiagopapeleria.com',
+    'general'    => get_option('admin_email'),
+  ];
+
+  $to = $recipients[$area] ?? $recipients['general'];
+
+  $subject = sprintf('[Contacto Web] %s - %s', ucfirst($area), $name);
+
+  $body  = "Has recibido un nuevo mensaje desde la web:\n\n";
+  $body .= "Nombre: {$name}\n";
+  $body .= "Correo: {$email}\n";
+  $body .= "Área: {$area}\n\n";
+  $body .= "Mensaje:\n{$message}\n";
+
+  $headers = [
+    'Content-Type: text/plain; charset=UTF-8',
+    'Reply-To: ' . $name . ' <' . $email . '>',
+  ];
+
+  $ok = wp_mail($to, $subject, $body, $headers);
+
+  wp_safe_redirect(add_query_arg('sent', $ok ? '1' : '0', $ref));
+  exit;
+}
+
+
+// 1) Cambiar texto y clase de disponibilidad
+add_filter('woocommerce_get_availability_text', function ($text, $product) {
+  if (!$product) return $text;
+
+  if (!$product->is_in_stock()) {
+    return 'Agotado por el momento';
+  }
+  return $text;
+}, 10, 2);
+
+add_filter('woocommerce_get_availability_class', function ($class, $product) {
+  if ($product && !$product->is_in_stock()) {
+    return 'gs-outofstock';
+  }
+  return $class;
+}, 10, 2);
+
+
+// 2) Badge "AGOTADO" en la grilla (tienda/categorías)
+add_action('woocommerce_before_shop_loop_item_title', function () {
+  global $product;
+  if ($product && !$product->is_in_stock()) {
+    echo '<span class="gs-badge-outofstock">Agotado</span>';
+  }
+}, 9);
+
+
+// 3) Badge también en la ficha (single product), debajo del título
+add_action('woocommerce_single_product_summary', function () {
+  global $product;
+  if ($product && !$product->is_in_stock()) {
+    echo '<div class="gs-single-outofstock">Agotado por el momento</div>';
+  }
+}, 6);
+
+
+// 4) En la grilla: reemplazar botón por "Sin stock" (deshabilitado) + link opcional a contactenos
+add_filter('woocommerce_loop_add_to_cart_link', function ($html, $product) {
+  if (!$product) return $html;
+
+  if (!$product->is_in_stock()) {
+    $contact_url = home_url('/contactenos/');
+    return '<div class="gs-outofstock-actions">
+              <span class="button gs-btn-disabled" aria-disabled="true">Sin stock</span>
+              <a class="gs-link-notify" href="' . esc_url($contact_url) . '">Avísame cuando haya</a>
+            </div>';
+  }
+
+  return $html;
+}, 10, 2);
+
+
+// Desactivar comentarios en todo el sitio (frontend + admin)
+add_action('admin_init', function () {
+  // Quitar soporte de comentarios en tipos de post comunes
+  foreach (['post','page'] as $type) {
+    if (post_type_supports($type, 'comments')) {
+      remove_post_type_support($type, 'comments');
+      remove_post_type_support($type, 'trackbacks');
+    }
+  }
+});
+
+// Cerrar comentarios y pings en frontend
+add_filter('comments_open', '__return_false', 20, 2);
+add_filter('pings_open', '__return_false', 20, 2);
+
+// Ocultar comentarios existentes (no mostrar lista)
+add_filter('comments_array', '__return_empty_array', 10, 2);
+
+// Quitar menú de Comentarios del admin
+add_action('admin_menu', function () {
+  remove_menu_page('edit-comments.php');
+});
+
+// Quitar widget de “Comentarios recientes”
+add_action('widgets_init', function () {
+  unregister_widget('WP_Widget_Recent_Comments');
 });

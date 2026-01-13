@@ -11,7 +11,7 @@ $shop_link = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('s
 $fallback_img = get_stylesheet_directory_uri() . '/assets/img/servicios1.jpg';
 ?>
 
-<section class="w-full bg-gradient-to-b from-blue-50 to-white">
+<main class="w-full ">
   <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
 
     <!-- Header -->
@@ -165,6 +165,6 @@ $fallback_img = get_stylesheet_directory_uri() . '/assets/img/servicios1.jpg';
     <?php endif; ?>
 
   </div>
-</section>
+</main>
 
 <?php get_footer(); ?>

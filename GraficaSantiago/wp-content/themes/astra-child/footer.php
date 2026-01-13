@@ -1,10 +1,10 @@
 <?php
 if (! defined('ABSPATH')) {
-	exit; // Exit if accessed directly.
+    exit; // Exit if accessed directly.
 }
 
 ?>
-    </div> <!-- .ast-container -->
+</div> <!-- .ast-container -->
 </div> <!-- #content -->
 </div> <!-- #page -->
 
@@ -78,9 +78,9 @@ if (! defined('ABSPATH')) {
                     <div>
                         <p class="font-semibold text-xs tracking-[0.18em] uppercase text-yellow-200">Teléfonos</p>
                         <p class="text-sm leading-snug text-blue-100">072573358</p>
-                        <button class="mt-1 text-xs text-yellow-300 underline underline-offset-2 hover:text-yellow-200">
+                        <a class="mt-1 text-xs text-yellow-300 underline underline-offset-2 hover:text-yellow-200" href="<?php echo esc_url(home_url('/contactenos/')); ?>">
                             Ver extensiones
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -136,7 +136,7 @@ if (! defined('ABSPATH')) {
                             Ventas
                         </p>
                         <a href="mailto:ventas@santiagopapeleria.com"
-                           class="text-sm leading-snug text-blue-100 hover:text-yellow-300 hover:underline">
+                            class="text-sm leading-snug text-blue-100 hover:text-yellow-300 hover:underline">
                             ventas@santiagopapeleria.com
                         </a>
                     </div>
@@ -153,7 +153,7 @@ if (! defined('ABSPATH')) {
                             Dudas y reclamos
                         </p>
                         <a href="mailto:servicios@santiagopapeleria.com"
-                           class="text-sm leading-snug text-blue-100 hover:text-yellow-300 hover:underline">
+                            class="text-sm leading-snug text-blue-100 hover:text-yellow-300 hover:underline">
                             servicios@santiagopapeleria.com
                         </a>
                     </div>
@@ -170,7 +170,7 @@ if (! defined('ABSPATH')) {
                             Facturación
                         </p>
                         <a href="mailto:facturas@santiagopapeleria.com"
-                           class="text-sm leading-snug text-blue-100 hover:text-yellow-300 hover:underline">
+                            class="text-sm leading-snug text-blue-100 hover:text-yellow-300 hover:underline">
                             facturas@santiagopapeleria.com
                         </a>
                     </div>
@@ -185,12 +185,12 @@ if (! defined('ABSPATH')) {
                     La empresa
                 </h3>
                 <ul class="space-y-3 text-sm">
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Quiénes somos</a></li>
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Nuestro blog</a></li>
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Promociones</a></li>
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Contáctenos</a></li>
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Trabaja con nosotros</a></li>
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Responsabilidad social</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/nosotros')); ?>" class="hover:underline hover:text-yellow-300">Quiénes somos</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/blog')); ?>" class="hover:underline hover:text-yellow-300">Nuestro blog</a></li>
+                    <li><a href="<?php echo esc_url($catalog_url); ?>" class="hover:underline hover:text-yellow-300">Promociones</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/contactenos/')); ?>" class="hover:underline hover:text-yellow-300">Contáctenos</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/postulate/')); ?>" class="hover:underline hover:text-yellow-300">Trabaja con nosotros</a></li>
+                    
                 </ul>
             </div>
 
@@ -199,9 +199,9 @@ if (! defined('ABSPATH')) {
                     ¿Cómo comprar?
                 </h3>
                 <ul class="space-y-3 text-sm">
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Formas de pago</a></li>
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Envío y recogida en tienda</a></li>
-                    <li><a href="#" class="hover:underline hover:text-yellow-300">Devolución y cambio</a></li>
+                    <li><a href="<?php echo esc_url(home_url('/formas-de-pago/')); ?>" class="hover:underline hover:text-yellow-300">Formas de pago</a></li>
+                    
+                    <li><a href="<?php echo esc_url(home_url('/devolucion-y-cambio/')); ?>" class="hover:underline hover:text-yellow-300">Devolución y cambio</a></li>
                 </ul>
             </div>
         </div>
@@ -220,5 +220,6 @@ if (! defined('ABSPATH')) {
 </footer>
 <?php wp_footer(); ?>
 </body>
-<script src="<?php echo esc_url(get_stylesheet_directory_uri() . '/assets/js/script.js');?>"></script>
+<script src="<?php echo esc_url(get_stylesheet_directory_uri() . '/assets/js/script.js'); ?>"></script>
+
 </html>

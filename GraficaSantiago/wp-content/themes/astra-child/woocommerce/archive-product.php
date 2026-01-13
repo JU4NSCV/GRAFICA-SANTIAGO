@@ -4,7 +4,7 @@ defined('ABSPATH') || exit;
 get_header('shop');
 ?>
 
-<section class="w-full bg-gradient-to-b from-blue-50 to-white">
+<main class="w-full">
   <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
 
     <div class="flex flex-col lg:flex-row gap-6">
@@ -147,7 +147,7 @@ get_header('shop');
     </div>
 
   </div>
-</section>
+</main>
 
 <?php
 get_footer('shop');

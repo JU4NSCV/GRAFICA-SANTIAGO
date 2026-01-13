@@ -4,6 +4,8 @@ defined('ABSPATH') || exit;
 $items = wc_get_account_menu_items();
 
 $icons = [
+  'mayorista'         => '💼',
+  'catalogo-mayorista' => '🏷️',
   'dashboard'       => '🏠',
   'orders'          => '📦',
   'historial'       => '🕘',
@@ -25,8 +27,8 @@ $icons = [
       <li class="<?php echo esc_attr($classes); ?>">
         <a href="<?php echo esc_url(wc_get_account_endpoint_url($endpoint)); ?>"
           class="<?php echo $is_active
-            ? 'bg-blue-900 text-white'
-            : 'bg-blue-50/40 text-blue-900 hover:bg-blue-900 hover:text-white'; ?>
+                    ? 'bg-blue-900 text-white'
+                    : 'bg-blue-50/40 text-blue-900 hover:bg-blue-900 hover:text-white'; ?>
             flex items-center justify-between gap-3 px-4 py-3 rounded-2xl font-extrabold transition">
 
           <span class="flex items-center gap-3">

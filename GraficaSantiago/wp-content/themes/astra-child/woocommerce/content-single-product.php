@@ -36,7 +36,7 @@ if ($product->is_on_sale()) {
 $in_stock = $product->is_in_stock();
 ?>
 
-<section class="w-full bg-gradient-to-b from-blue-50 to-white">
+<main class="w-full ">
   <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
 
     <!-- Breadcrumbs -->
@@ -109,7 +109,7 @@ $in_stock = $product->is_in_stock();
 
         <!-- RESUMEN -->
         <div class="lg:col-span-5">
-          <div class="lg:sticky lg:top-28 rounded-3xl bg-white border border-blue-900/10 shadow-sm p-5 md:p-7">
+          <div class="lg:sticky lg:top-28 rounded-3xl bg-white border border-blue-900/10 shadow-sm p-5 md:p-7 bg-gradient-to-b from-blue-50">
 
             <!-- Categorías mini -->
             <div class="text-xs text-blue-900/60 mb-2">
@@ -165,6 +165,6 @@ $in_stock = $product->is_in_stock();
 
     </div>
   </div>
-</section>
+</main>
 
 <?php do_action('woocommerce_after_single_product'); ?>

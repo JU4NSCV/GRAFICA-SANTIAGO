@@ -14,7 +14,7 @@ get_header();
     </div>
 
     <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
-      <h1 class="text-3xl md:text-5xl font-bold mb-4">Encuentra tu Institución</h1>
+      <h1 class="text-3xl md:text-5xl font-bold mb-4 text-white">Encuentra tu Institución</h1>
       <p class="text-blue-200 text-lg mb-8">Descarga la lista oficial de útiles escolares 2025.</p>
 
       <div class="bg-white p-2 rounded-full shadow-2xl flex items-center max-w-2xl mx-auto transform translate-y-8">
